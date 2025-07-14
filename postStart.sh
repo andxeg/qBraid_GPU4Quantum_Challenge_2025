@@ -24,11 +24,16 @@ cd ..
 echo "\n[qBraid] Installing your project dependencies...\n"
 pip install -r requirements.txt
 
-# 6. Clean pip cache
+# 6. Install Git LFT
+echo -e "\n[qBraid] Installing Git LFS...\n"
+sudo apt update && sudo apt install -y git-lfs
+git lfs install
+
+# 7. Clean pip cache
 echo "\n[qBraid] Purging pip cache...\n"
 pip cache purge
 
-# 7. Clean temporary files
+# 8. Clean temporary files
 echo "\n[qBraid] Removing temporary files...\n"
 rm -rf /tmp/* ~/.cache/pip ~/.cache/matplotlib
 
