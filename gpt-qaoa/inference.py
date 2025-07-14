@@ -130,12 +130,15 @@ TOKENS_COUNTER: dict[str, Callable] = {
 
 
 # Dict with paths to checkpoints and meta files
+# Abs path to the folder where inference.py is located
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
 MODELS_INFO = {
     # 20m model trained on 20k dataset with pairs <graph, circuit>
     # nodes weights (mu/result) and edges weights (corr coeff) were used
     "20m_new": {
-        "ckpt_path": "./checkpoints/ckpt_20m_new.pt",
-        "meta_path": "./data/train/meta_20_new.pkl",
+        "ckpt_path": os.path.join(THIS_DIR, "./checkpoints/ckpt_20m_new.pt"),
+        "meta_path": os.path.join(THIS_DIR, "./data/train/meta_20_new.pkl"),
         "graph_tokenizer": "graph_to_tokens_v1",
         "tokens_counter": "qiskit"
     },
@@ -143,8 +146,8 @@ MODELS_INFO = {
     # 50m model trained on 20k dataset with pairs <graph, circuit>
     # only edges weights (corr coeff) were used
     "50m_old": {
-        "ckpt_path": "./checkpoints/ckpt_50m_old.pt",
-        "meta_path": "./data/train/meta_50m_old.pkl",
+        "ckpt_path": os.path.join(THIS_DIR, "./checkpoints/ckpt_50m_old.pt"),
+        "meta_path": os.path.join(THIS_DIR, "./data/train/meta_50m_old.pkl"),
         "graph_tokenizer": "graph_to_tokens_old_format",
         "tokens_counter": "qiskit"
     },
@@ -152,8 +155,8 @@ MODELS_INFO = {
     # 50m model trained on 20k dataset with pairs <graph, circuit>
     # nodes weights (mu/result) and edges weights (corr coeff) were used
     "50m_new": {
-        "ckpt_path": "./checkpoints/ckpt_50m_new.pt",
-        "meta_path": "./data/train/meta_50m_new.pkl",
+        "ckpt_path": os.path.join(THIS_DIR, "./checkpoints/ckpt_50m_new.pt"),
+        "meta_path": os.path.join(THIS_DIR, "./data/train/meta_50m_new.pkl"),
         "graph_tokenizer": "graph_to_tokens_v1",
         "tokens_counter": "qiskit"
     },
@@ -162,8 +165,8 @@ MODELS_INFO = {
     # 1k with pairs <graph, circuits> were used generated from Nasdaq data
     # nodes weights (mu/result) and edges weights (corr coeff) were used
     "50m_new_ft_nasdaq": {
-        "ckpt_path": "./checkpoints/ckpt_50m_new_ft_nasdaq.pt",
-        "meta_path": "./data/train/meta_50m_new_ft_nasdaq.pkl",
+        "ckpt_path": os.path.join(THIS_DIR, "./checkpoints/ckpt_50m_new_ft_nasdaq.pt"),
+        "meta_path": os.path.join(THIS_DIR, "./data/train/meta_50m_new_ft_nasdaq.pkl"),
         "graph_tokenizer": "graph_to_tokens_v1_nasdaq",
         "tokens_counter": "qokit"
     }
