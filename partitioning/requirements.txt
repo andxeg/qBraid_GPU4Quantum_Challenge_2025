@@ -1,10 +1,8 @@
-numpy 
-pandas 
+numpy
+pandas
 scikit-learn
-qiskit 
-qiskit_aer
+qiskit
+qiskit-aer
 nlopt
-networkx 
-itertools
-dataclasses 
+networkx
 pulp
