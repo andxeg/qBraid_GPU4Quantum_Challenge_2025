@@ -12,7 +12,7 @@ git clone https://github.com/jpmorganchase/QOKit.git
 
 # 3. Replace QOkit/qokit/portfolio_optimization.py with your custom version
 printf "\n[qBraid] Replacing QOkit/qokit/portfolio_optimization.py with your custom version...\n"
-cp benchmarks/portfolio_optimization.py QOkit/qokit/portfolio_optimization.py
+cp benchmarks/portfolio_optimization.py QOKit/qokit/portfolio_optimization.py
 
 # 4. Install QOkit with GPU-CUDA12 support
 printf "\n[qBraid] Installing QOkit in editable mode with GPU-CUDA12 support...\n"
