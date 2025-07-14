@@ -14,6 +14,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import tqdm
+from memory_profiler import memory_usage
 
 # Must be called early, before model creation or torch.compile
 torch.set_float32_matmul_precision('high')
@@ -495,8 +496,7 @@ def generate_batch(
         end_t = time.time()
         print(f"Elapsed time for warm-up: {end_t - start_t} secs")
 
-    # choose inference function according to parameters
-    generate_long_circuit_func = None
+    # choose inference function
     if device == "cpu" and not cached:
         generate_long_circuit_func = generate_long_circuit_cpu
     elif device == "cpu" and cached:
@@ -505,29 +505,42 @@ def generate_batch(
         generate_long_circuit_func = generate_long_circuit_compiled
     elif device == "cuda" and cached:
         generate_long_circuit_func = generate_long_circuit_compiled_cached
+    else:
+        raise ValueError(f"Unsupported device/cached configuration: {device}, {cached}")
 
     times = []
     results = []
+    memories = []
+
     for graph in tqdm.tqdm(graphs_batch):
         graph_tokens = graph_tokenizer(graph)
+
+        def wrapped_generation():
+            return generate_long_circuit_func(
+                model,
+                config,
+                graph_tokens,
+                stoi,
+                itos,
+                max_total_tokens=max_total_tokens,
+                temperature=0.5,
+                top_k=None
+            )
+
         start_t = time.time()
-        generated_circuit_tokens = generate_long_circuit_func(
-            model,
-            config,
-            graph_tokens,
-            stoi,
-            itos,
-            max_total_tokens=max_total_tokens,
-            temperature=0.5,
-            top_k=None
+        mem_usage, generated_circuit_tokens = memory_usage(
+            (wrapped_generation,), max_usage=True, retval=True
         )
         end_t = time.time()
+
         gen_t = end_t - start_t
         times.append(gen_t)
         results.append(generated_circuit_tokens)
-        print(f"Generation time: {gen_t} secs, generated QAOA Circuit length: {len(generated_circuit_tokens)}")
+        memories.append(mem_usage)
 
-    return results, times
+        print(f"Generation time: {gen_t:.4f} secs, memory used: {mem_usage:.2f} MiB, generated QAOA Circuit length: {len(generated_circuit_tokens)}")
+
+    return results, times, memories
 
 
 def load_meta_info(meta_path: str) -> Tuple[Dict[Any, Any], Dict[str, int], Dict[int, str]]:

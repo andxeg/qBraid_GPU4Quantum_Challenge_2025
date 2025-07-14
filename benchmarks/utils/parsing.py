@@ -266,13 +266,21 @@ def tokens_to_circuit(tokens, initial_state=None, num_qubits=15, K=4, isNasdaq=F
     
 def get_max_token_count(n):
     token_map = {
-        5: 1386,
-        10: 3465,
-        15: 6930,
-        20: 12127,
-        25: 18018,
-        30: 24255
+        5: 820,
+        10: 2050,
+        15: 4100,
+        20: 7175,
+        25: 10660,
+        30: 14350
     }
+    # token_map = {
+    #     5: 1386,
+    #     10: 3465,
+    #     15: 6930,
+    #     20: 12127,
+    #     25: 18018,
+    #     30: 24255
+    # }
 
     # Step 1: Sort the keys
     sorted_keys = sorted(token_map.keys())

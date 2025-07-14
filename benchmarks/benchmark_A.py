@@ -1,23 +1,31 @@
-
+import sys
+import os
 import time
 from memory_profiler import memory_usage
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
-# --------------------------------------------
-# SETUP PATHS TO IMPORT LOCAL MODULES
-# --------------------------------------------
+# --- SETUP PATHS TO IMPORT MODULES ---
+# Get absolute path to the notebook directory
+notebook_dir = os.path.abspath("./benchmarking")
+if notebook_dir not in sys.path:
+    sys.path.insert(0, notebook_dir)
 
-# --------------------------------------------
-# IMPORT FUNCTIONS FROM LOCAL MODULES
-# --------------------------------------------
+# Get absolute path to the QOKit directory (assumes it's two levels up from notebook_dir)
+qokit_path = os.path.abspath(os.path.join(notebook_dir, "../../QOKit"))
+if qokit_path not in sys.path:
+    sys.path.insert(0, qokit_path)
+sys.path.append("../")
+print("Notebook directory:", notebook_dir)
+print("QOKit path:", qokit_path)
 
-from utils.graphs import (
+# --- IMPORT FUNCTIONS FROM LOCAL FILES ---
+from graphs import (
     append_csv,
     generate_random_po_graph,
     save_graphs,
     load_graphs,
     graph_to_po_problem,
 )
-# THis file needs to be adjusted to import from ../gpt-qaoa/inference.py
 from inference import (
     inference,
     load_meta_info,
@@ -25,62 +33,57 @@ from inference import (
     generate_batch,
     MODELS_INFO,
     graph_to_tokens_old_format,
+    graph_to_tokens_v1,
 )
-from utils.run_circuit_qiskit import run_gpt_circuit
-from utils.run_circuit_qokit import solve_with_qokit
-from utils.parsing import tokens_to_circuit, get_max_token_count
+from functools import partial
+from run_circuit_qiskit import run_gpt_circuit
+from run_circuit_qokit import solve_with_qokit
+from parsing import tokens_to_circuit, get_max_token_count
+GRAPH_TOKENIZERS: dict[str, Callable] = {
+    "graph_to_tokens_old_format": graph_to_tokens_old_format,
+    "graph_to_tokens_v1": graph_to_tokens_v1,
+    "graph_to_tokens_v1_nasdaq": partial(graph_to_tokens_v1, version_token="<format_v3_nasdaq>"),
+}
 
-# --------------------------------------------
-# USER INPUT PROMPTS
-# --------------------------------------------
+def get_graph_tokenizer(model_id: str) -> Callable:
+    if model_id not in MODELS_INFO:
+        raise ValueError(f"Unknown model_id: {model_id}")
+    tokenizer_name = MODELS_INFO[model_id]["graph_tokenizer"]
+    if tokenizer_name not in GRAPH_TOKENIZERS:
+        raise ValueError(f"Tokenizer '{tokenizer_name}' not found in GRAPH_TOKENIZERS")
+    return GRAPH_TOKENIZERS[tokenizer_name]
 
-# Ask user to input number of assets (nodes), number to select, risk aversion, and trials
 n = int(input("Enter number of assets (n): "))
 K = int(input(f"Enter number of assets to select (K, default {n // 5}): ") or (n // 5))
 q = float(input("Enter risk aversion parameter (q, e.g. 0.5): "))
 number_of_trials = int(input("Enter number of trials: "))
 
-# Estimate maximum number of tokens needed based on n
 max_token_count = get_max_token_count(n)
 print(f"Graph Size: {n}, Max Number of Tokens: {max_token_count}")
-
-# --------------------------------------------
-# GENERATE RANDOM PORTFOLIO OPTIMIZATION GRAPHS
-# --------------------------------------------
-
+# --- GENERATE RANDOM GRAPHS FOR PORTFOLIO OPTIMIZATION ---
 graphs = []
-for trial in range(number_of_trials):
+for number in range(number_of_trials):
     G = generate_random_po_graph(n=n, K=K, q=q)
     graphs.append(G)
 
-# --------------------------------------------
-# LOAD GPT MODEL AND TOKENIZER
-# --------------------------------------------
+# --- LOAD GPT MODEL AND TOKENIZER ---
+model_id = "50m_new_ft_nasdaq"  # Can change to another model like "20m_new"
+device = "cuda"        # Or "cpu" if not using GPU
+cached = True          # Use a cached version of the model if possible
 
-model_id = "50m_new_ft_nasdaq"  # Can be changed to other models
-device = "cuda"                 # or "cpu" if no GPU available
-cached = True                   # Use cached model if possible
-
-# Load model config
+# Step 1: Get model config
 model_params = MODELS_INFO[model_id]
 
-# Load metadata and tokenizer
+# Step 2: Load meta info and tokenizer
 meta, stoi, itos = load_meta_info(model_params["meta_path"])
-graph_tokenizer = eval(model_params["graph_tokenizer"])
+graph_tokenizer = get_graph_tokenizer(model_id)
 
-# Load GPT model
+# Step 3: Load model itself
 model, config = load_model(
-    model_params["ckpt_path"],
-    meta,
-    device=device,
-    compile=True,
-    cached=True
+    model_params["ckpt_path"], meta, device=device, compile=True, cached=True
 )
 
-# --------------------------------------------
-# GENERATE QUANTUM CIRCUITS FROM GRAPHS USING GPT
-# --------------------------------------------
-
+# --- GENERATE QUANTUM CIRCUITS FROM GRAPHS USING GPT ---
 generated_circuits, generated_times, generated_memory = generate_batch(
     graphs,
     model,
@@ -90,31 +93,28 @@ generated_circuits, generated_times, generated_memory = generate_batch(
     graph_tokenizer,
     cached=cached,
     device=device,
-    max_total_tokens=max_token_count
+    max_total_tokens = max_token_count
 )
-
 print("DONE GPT")
-
-# Convert tokens to Qiskit circuits
+# Convert generated tokens to actual Qiskit circuits
 circuits = []
 for tokens in generated_circuits:
-    qc = tokens_to_circuit(tokens, num_qubits=n)
+    qc = tokens_to_circuit(tokens, num_qubits = n)
     circuits.append(qc)
 
-# --------------------------------------------
-# RUN QOKIT AND GPT CIRCUITS ON EACH GRAPH
-# --------------------------------------------
-
+# --- RUN QOKIT AND GPT CIRCUITS ON EACH GRAPH ---
 qokit_solver_times = []
 gpt_alphas = []
 qokit_alphas = []
 qokit_peak_memories = []
 
+# Loop over each graph and its corresponding circuit
 for g, (graph, qc) in enumerate(zip(graphs, circuits)):
+    # Convert graph to PO dictionary (portfolio optimization problem)
     po_problem = graph_to_po_problem(graph)
 
     if g != 0:
-        # Measure time and memory for QOKit circuit
+        # Time and profile QOKit execution
         start = time.time()
         mem_info = memory_usage(
             lambda: solve_with_qokit(po_problem),
@@ -122,36 +122,30 @@ for g, (graph, qc) in enumerate(zip(graphs, circuits)):
             max_usage=True
         )
         end = time.time()
-
-        # Extract results
         qokit_peak_memory = mem_info[0]
-        _, __, qokit_alpha = mem_info[1]
-
+        _, __, qokit_alpha = mem_info[1]  # result from solve_with_qokit
+    
         print("QOKit Approximation Ratio:", qokit_alpha)
-
-        # Store QOKit metrics
+    
+        # Record QOKit results
         qokit_alphas.append(qokit_alpha)
         qokit_solver_times.append(end - start)
         qokit_peak_memories.append(qokit_peak_memory)
 
-    # Run GPT circuit on same problem and compute approximation ratio
-    gpt_alpha = run_gpt_circuit(po_problem=po_problem, qc=qc, shots=100)
+    # Run GPT-generated circuit and compute approximation ratio
+    gpt_alpha = run_gpt_circuit(po_problem=po_problem, qc=qc, shots= 100)
     gpt_alphas.append(gpt_alpha)
 
-# --------------------------------------------
-# SAVE RESULTS TO CSV FILE
-# --------------------------------------------
-
-# Skip first entry (used as warm-up or burn-in)
-rows = [[
-    n,
+# --- SAVE RESULTS TO CSV FILE ---
+# Skip the first entry (typically used for debugging or warm-up)
+rows = [[n,
     qokit_solver_times[i],
     generated_times[i + 1],
     qokit_alphas[i],
     gpt_alphas[i + 1],
     qokit_peak_memories[i],
-    generated_memory[i + 1]
+    generated_memory[i+1]
 ] for i in range(len(qokit_alphas))]
 
-# Save to CSV
-append_csv(rows=rows, filename='100_shots.csv')
+append_csv(rows=rows, filename=f'results.csv')
+
