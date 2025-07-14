@@ -1,5 +1,4 @@
-import sys
-import os
+
 import time
 from memory_profiler import memory_usage
 
@@ -7,33 +6,18 @@ from memory_profiler import memory_usage
 # SETUP PATHS TO IMPORT LOCAL MODULES
 # --------------------------------------------
 
-# Add the 'benchmarking' directory to sys.path
-notebook_dir = os.path.abspath("./benchmarking")
-if notebook_dir not in sys.path:
-    sys.path.insert(0, notebook_dir)
-
-# Add the QOKit directory to sys.path (assumed two levels up)
-qokit_path = os.path.abspath(os.path.join(notebook_dir, "../../QOKit"))
-if qokit_path not in sys.path:
-    sys.path.insert(0, qokit_path)
-
-# Add parent directory (if needed for additional modules)
-sys.path.append("../")
-
-print("Notebook directory:", notebook_dir)
-print("QOKit path:", qokit_path)
-
 # --------------------------------------------
 # IMPORT FUNCTIONS FROM LOCAL MODULES
 # --------------------------------------------
 
-from graphs import (
+from utils.graphs import (
     append_csv,
     generate_random_po_graph,
     save_graphs,
     load_graphs,
     graph_to_po_problem,
 )
+# THis file needs to be adjusted to import from ../gpt-qaoa/inference.py
 from inference import (
     inference,
     load_meta_info,
@@ -42,9 +26,9 @@ from inference import (
     MODELS_INFO,
     graph_to_tokens_old_format,
 )
-from run_circuit_qiskit import run_gpt_circuit
-from run_circuit_qokit import solve_with_qokit
-from parsing import tokens_to_circuit, get_max_token_count
+from utils.run_circuit_qiskit import run_gpt_circuit
+from utils.run_circuit_qokit import solve_with_qokit
+from utils.parsing import tokens_to_circuit, get_max_token_count
 
 # --------------------------------------------
 # USER INPUT PROMPTS
