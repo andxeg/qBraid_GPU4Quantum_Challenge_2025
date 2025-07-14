@@ -30,5 +30,15 @@ Members: Andrew Maciejunes | Marlon Jost | Andrei Chupakhin | Pranik Chainani | 
     - `partitioning_with_QOKit.py` - QOKit-based circuit simulator in partitioning workflow (working progress)
 
 
-Note that large binary assets are stored via Git LFS.
+## ⚠️ Important Note about Checkpoints and Git LFS
 
+> **Note:** Large binary assets (e.g. model checkpoints) are stored via **Git LFS**.  
+> Due to GitHub bandwidth and file size limits, you may **encounter errors** when trying to download `gpt-qaoa/checkpoints` directly through `git clone` or `git lfs pull`.
+
+### 🔧 Recommended workaround
+
+1. Manually go to the [GitHub repo](https://github.com/Marlon-Jost/JPMorgan-Challenge-Submission/tree/main/gpt-qaoa/checkpoints)
+2. Download the all files to your **local machine**
+3. Upload them to your **qBraid instance** using the web interface
+
+This ensures you get all the necessary files without hitting GitHub's LFS restrictions.
