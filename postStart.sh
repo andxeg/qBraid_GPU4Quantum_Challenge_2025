@@ -10,21 +10,25 @@ pip install --upgrade pip
 echo "\n[qBraid] Cloning QOkit repository...\n"
 git clone https://github.com/jpmorganchase/QOKit.git
 
-# 3. Install QOkit with GPU-CUDA12 support
+# 3. Replace QOkit/qokit/portfolio_optimization.py with your custom version
+echo -e "\n[qBraid] Replacing QOkit/qokit/portfolio_optimization.py with your custom version...\n"
+cp benchmarks/portfolio_optimization.py QOkit/qokit/portfolio_optimization.py
+
+# 4. Install QOkit with GPU-CUDA12 support
 echo "\n[qBraid] Installing QOkit in editable mode with GPU-CUDA12 support...\n"
 cd QOKit
 pip install -e .[GPU-CUDA12]
 cd ..
 
-# 4. Install project requirements
+# 5. Install project requirements
 echo "\n[qBraid] Installing your project dependencies...\n"
 pip install -r requirements.txt
 
-# 5. Clean pip cache
+# 6. Clean pip cache
 echo "\n[qBraid] Purging pip cache...\n"
 pip cache purge
 
-# 6. Clean temporary files
+# 7. Clean temporary files
 echo "\n[qBraid] Removing temporary files...\n"
 rm -rf /tmp/* ~/.cache/pip ~/.cache/matplotlib
 
