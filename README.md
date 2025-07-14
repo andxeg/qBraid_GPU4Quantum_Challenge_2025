@@ -1,7 +1,7 @@
 # JPMorgan-Challenge-Submission
 
-** Qvengers Team **
-** Members: Andrew Maciejunes | Marlon Jost | Andrei Chupakhin | Pranik Chainani | Vlad Gaylun **
+Qvengers Team
+Members: Andrew Maciejunes | Marlon Jost | Andrei Chupakhin | Pranik Chainani | Vlad Gaylun
 
 
 **Single-shot circuit generation + graph-partitioning pipeline that delivers up to 137× speed-ups on 20-asset problems and scales cleanly to 150-asset instances.**
