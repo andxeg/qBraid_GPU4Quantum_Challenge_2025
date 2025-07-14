@@ -695,8 +695,8 @@ if __name__ == "__main__":
     # Parameters
     # model_id = "50m_old"
     # model_id = "20m_new"
-    # model_id = "50m_new"
-    model_id = "50m_new_ft_nasdaq"
+    model_id = "50m_new"
+    # model_id = "50m_new_ft_nasdaq"
     device = "cuda"
     cached = True
     limit = 2
@@ -704,8 +704,9 @@ if __name__ == "__main__":
     
     # Load graphs
     # Assume that all graphs have the same size. It's very important for generation because you should specify max_total_tokens in batch_
-    # graphs_filename = "./data/graph_and_circuits/random_graphs_for_testing.pkl" # synthetic data
-    graphs_filename = "./data/graph_and_circuits/nasdaq_graphs_3_1.pkl" # nasdaq data
+    # Choose synthetic data or Nasdaq data
+    graphs_filename = "./data/graph_and_circuits/nasdaq_graphs_3_1.pkl" if "nasdaq" in model_id else \
+                      "./data/graph_and_circuits/random_graphs_for_testing.pkl"
 
     print("Starting to load graphs")
     graphs_batch = load_graphs(graphs_filename)
