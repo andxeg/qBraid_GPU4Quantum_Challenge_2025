@@ -53,10 +53,10 @@ def get_graph_tokenizer(model_id: str) -> Callable:
         raise ValueError(f"Tokenizer '{tokenizer_name}' not found in GRAPH_TOKENIZERS")
     return GRAPH_TOKENIZERS[tokenizer_name]
 
-n = int(input("Enter number of assets (n): "))
+n = int(input("Enter number of assets (n, e.g. 10-20): "))
 K = int(input(f"Enter number of assets to select (K, default {n // 5}): ") or (n // 5))
 q = float(input("Enter risk aversion parameter (q, e.g. 0.5): "))
-number_of_trials = int(input("Enter number of trials: "))
+number_of_trials = int(input("Enter number of trials (e.g. 3-5): "))
 
 max_token_count = get_max_token_count(n)
 print(f"Graph Size: {n}, Max Number of Tokens: {max_token_count}")
