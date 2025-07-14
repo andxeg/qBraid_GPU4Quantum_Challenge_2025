@@ -3,10 +3,10 @@ matplotlib
 memory-profiler
 networkx
 nlopt
-numpy
+numpy==1.26.4
 pandas
 pulp
-qiskit==1.4.3
+qiskit==1.3.1
 qiskit-aer
 qiskit-optimization
 scikit-learn
@@ -15,4 +15,3 @@ torch
 tqdm
 transformers
 wandb
-
