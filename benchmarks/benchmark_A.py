@@ -1,8 +1,10 @@
 import sys
 import os
 import time
-from memory_profiler import memory_usage
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+from memory_profiler import memory_usage
+import torch
 
 # --- SETUP PATHS TO IMPORT MODULES ---
 # Get absolute path to the notebook directory
@@ -68,7 +70,8 @@ for number in range(number_of_trials):
 
 # --- LOAD GPT MODEL AND TOKENIZER ---
 model_id = "50m_new_ft_nasdaq"  # Can change to another model like "20m_new"
-device = "cuda"        # Or "cpu" if not using GPU
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device}")
 cached = True          # Use a cached version of the model if possible
 
 # Step 1: Get model config
