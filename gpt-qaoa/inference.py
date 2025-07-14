@@ -1,11 +1,12 @@
 from contextlib import nullcontext
+from functools import partial
 import importlib
 import os
 import pathlib
 import pickle
 import random
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import networkx
 import networkx as nx
@@ -22,33 +23,6 @@ from model_qaoa import GPT, GPTConfig
 
 # import model_qaoa_cached
 from model_qaoa_cached import GPT as GPT_cached, GPTConfig as GPTConfig_cached
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-# Dict with paths to checkpoints and meta files
-MODELS_INFO = {
-    "20m_new": {
-        "ckpt_path": "./checkpoints/ckpt_20m_new.pt",
-        "meta_path": "./data/train/meta_20_new.pkl",
-        "graph_tokenizer": "graph_to_tokens_v1",
-    },
-    "50m_old": {
-        "ckpt_path": "./checkpoints/ckpt_50m_old.pt",
-        "meta_path": "./data/train/meta_50m_old.pkl",
-        "graph_tokenizer": "graph_to_tokens_old_format",
-    },
-    "50m_new": {
-        "ckpt_path": os.path.join(THIS_DIR, "./checkpoints/ckpt_50m_new.pt"),
-        "meta_path": os.path.join(THIS_DIR, "./data/train/meta_50m_new.pkl"),
-        "graph_tokenizer": "graph_to_tokens_v1",
-    },
-}
-
-
-def load_graphs(file: pathlib.Path) -> List[nx.Graph]:
-    with open(file, "rb") as f:
-        graphs = pickle.load(f)
-    return graphs
 
 
 def graph_to_tokens_old_format(graph: nx.Graph) -> List[str]:
@@ -68,7 +42,7 @@ def graph_to_tokens_old_format(graph: nx.Graph) -> List[str]:
     return graph_tokens
 
 
-def graph_to_tokens_v1(graph: nx.Graph) -> List[str]:
+def graph_to_tokens_v1(graph: networkx.classes.graph.Graph, version_token: str = "<format_v1>") -> List[str]:
     """
         Compound tokens like '(0, 1)' and '[0 1]'.
         And 2-decimal precision for float numbers.
@@ -80,7 +54,7 @@ def graph_to_tokens_v1(graph: nx.Graph) -> List[str]:
     nodes_weight_end = "<node_weights_end>"
     graph_tokens = []
     graph_tokens.append(bos_token)
-    graph_tokens.append("<format_v1>")
+    graph_tokens.append(version_token)
 
     # nodes
     graph_tokens.append(nodes_weight_start)
@@ -100,6 +74,145 @@ def graph_to_tokens_v1(graph: nx.Graph) -> List[str]:
         graph_tokens.append(f"{graph.edges[u, v]['weight']:.2f}") # 2-decimal precision
     graph_tokens.append(end_of_graph_token)    
     return graph_tokens
+
+
+def get_max_token_count_qiskit(n: int) -> int:
+    token_map = {
+        5: 1386,
+        10: 3465,
+        15: 6930,
+        20: 12127,
+        25: 18018,
+        30: 24255
+    }
+
+    sorted_keys = sorted(token_map.keys())
+    for k in sorted_keys:
+        if n <= k:
+            return token_map[k]
+
+    # If n is greater than all keys, use the largest
+    return token_map[sorted_keys[-1]]
+
+
+def get_max_token_count_qokit(n: int) -> int:
+    token_map = {
+        5: 820,
+        10: 2050,
+        15: 4100,
+        20: 7175,
+        25: 10660,
+        30: 14350
+    }
+
+    sorted_keys = sorted(token_map.keys())
+    for k in sorted_keys:
+        if n <= k:
+            return token_map[k]
+
+    # If n is greater than all keys, use the largest
+    return token_map[sorted_keys[-1]]
+
+
+# Tokenizers
+GRAPH_TOKENIZERS: dict[str, Callable] = {
+    "graph_to_tokens_old_format": graph_to_tokens_old_format,
+    "graph_to_tokens_v1": graph_to_tokens_v1,
+    "graph_to_tokens_v1_nasdaq": partial(graph_to_tokens_v1, version_token="<format_v3_nasdaq>"),
+}
+
+
+# Max tokens counter
+TOKENS_COUNTER: dict[str, Callable] = {
+    "qiskit": get_max_token_count_qiskit,
+    "qokit": get_max_token_count_qokit
+}
+
+
+# Dict with paths to checkpoints and meta files
+MODELS_INFO = {
+    # 20m model trained on 20k dataset with pairs <graph, circuit>
+    # nodes weights (mu/result) and edges weights (corr coeff) were used
+    "20m_new": {
+        "ckpt_path": "./checkpoints/ckpt_20m_new.pt",
+        "meta_path": "./data/train/meta_20_new.pkl",
+        "graph_tokenizer": "graph_to_tokens_v1",
+        "tokens_counter": "qiskit"
+    },
+
+    # 50m model trained on 20k dataset with pairs <graph, circuit>
+    # only edges weights (corr coeff) were used
+    "50m_old": {
+        "ckpt_path": "./checkpoints/ckpt_50m_old.pt",
+        "meta_path": "./data/train/meta_50m_old.pkl",
+        "graph_tokenizer": "graph_to_tokens_old_format",
+        "tokens_counter": "qiskit"
+    },
+
+    # 50m model trained on 20k dataset with pairs <graph, circuit>
+    # nodes weights (mu/result) and edges weights (corr coeff) were used
+    "50m_new": {
+        "ckpt_path": "./checkpoints/ckpt_50m_new.pt",
+        "meta_path": "./data/train/meta_50m_new.pkl",
+        "graph_tokenizer": "graph_to_tokens_v1",
+        "tokens_counter": "qiskit"
+    },
+
+    # fine-tuned model based on 50m_new
+    # 1k with pairs <graph, circuits> were used generated from Nasdaq data
+    # nodes weights (mu/result) and edges weights (corr coeff) were used
+    "50m_new_ft_nasdaq": {
+        "ckpt_path": "./checkpoints/ckpt_50m_new_ft_nasdaq.pt",
+        "meta_path": "./data/train/meta_50m_new_ft_nasdaq.pkl",
+        "graph_tokenizer": "graph_to_tokens_v1_nasdaq",
+        "tokens_counter": "qokit"
+    }
+}
+
+
+def get_graph_tokenizer(model_id: str) -> Callable:
+    if model_id not in MODELS_INFO:
+        raise ValueError(f"Unknown model_id: {model_id}")
+    tokenizer_name = MODELS_INFO[model_id]["graph_tokenizer"]
+    if tokenizer_name not in GRAPH_TOKENIZERS:
+        raise ValueError(f"Tokenizer '{tokenizer_name}' not found in GRAPH_TOKENIZERS")
+    return GRAPH_TOKENIZERS[tokenizer_name]
+
+
+def get_max_token_counter(model_id: str) -> Callable:
+    if model_id not in MODELS_INFO:
+        raise ValueError(f"Unknown model_id: {model_id}")
+    tokens_counter_name = MODELS_INFO[model_id]["tokens_counter"]
+    if tokens_counter_name not in TOKENS_COUNTER:
+        raise ValueError(f"Tokens counter '{tokens_counter_name}' not found in TOKENS_COUNTER")
+    return TOKENS_COUNTER[tokens_counter_name]
+
+
+def load_graphs(file: pathlib.Path) -> List[nx.Graph]:
+    with open(file, "rb") as f:
+        graphs = pickle.load(f)
+    return graphs
+
+
+def repair_graph(G: nx.Graph) -> nx.Graph:
+    mu = G.graph["mu"]
+    weights = G.graph["weights"]
+
+    for i, weight in enumerate(mu):
+        if i in G.nodes:
+            G.add_node(i)
+            G.nodes[i]["mu"] = weight
+
+    num_nodes = weights.shape[0]
+    for i in range(num_nodes):
+        for j in range(num_nodes):
+            weight = weights[i, j]
+            G.add_edge(i, j, weight=weight)
+
+    G.graph.pop("mu", None)
+    G.graph.pop("weights", None)
+
+    return G
 
 
 def generate_long_circuit_cpu(
@@ -473,7 +586,7 @@ def inference(
     # Parameters
     ckpt_path = model_params["ckpt_path"]
     meta_path = model_params["meta_path"]
-    graph_tokenizer = eval(model_params["graph_tokenizer"])
+    graph_tokenizer = get_graph_tokenizer(model_id)
     init_from = "resume"
     seed = 1337
 
@@ -506,6 +619,13 @@ def inference(
     model, config = load_model(ckpt_path, meta, device, compile_model, cached)
     print(f"Model with {cached=} was successfully loaded:\n{model}")
 
+    # Specify max total tokens
+    # Assume that all graphs in batch have the same size
+    n = len(graphs_batch[0].nodes)
+    max_token_counter = get_max_token_counter(model_id)
+    max_total_tokens = int(max_token_counter(n))
+    print(f"Graphs with number of nodes {n=}, therefore {max_total_tokens=} will be used")
+
     # Run generation
     generated_circuits, times = generate_batch(
         graphs_batch,
@@ -514,6 +634,7 @@ def inference(
         stoi,
         itos,
         graph_tokenizer,
+        max_total_tokens=max_total_tokens,
         cached=cached,
         device=device
     )
@@ -538,9 +659,10 @@ def save_generated_circuits(generated_circuits: List[List[str]], debug: bool = F
     generated_circuit_loaded = load_seq_tokens_from_file(filename_gen)
 
     if debug:
+        limit = 100
         for idx, circuit in enumerate(generated_circuits):
             print("-" * 40)
-            print(f"Circuit #{idx + 1}. First 20 tokens: {circuit[:20]}")
+            print(f"Circuit #{idx + 1}. First {limit} tokens: {circuit[:limit]}. Last {limit} tokens: {circuit[-limit:]}")
             print("-" * 40)
 
     # Check if everything saved correctly
@@ -570,16 +692,31 @@ def save_results(
 
 
 if __name__ == "__main__":
-    model_id = "50m_old"
+    # Parameters
+    # model_id = "50m_old"
+    # model_id = "20m_new"
+    # model_id = "50m_new"
+    model_id = "50m_new_ft_nasdaq"
     device = "cuda"
     cached = True
     limit = 2
     debug = True # partially print each generated circuit
-    graphs_filename = "./data/graph_and_circuits/random_graphs_for_testing.pkl"
+    
+    # Load graphs
+    # Assume that all graphs have the same size. It's very important for generation because you should specify max_total_tokens in batch_
+    # graphs_filename = "./data/graph_and_circuits/random_graphs_for_testing.pkl" # synthetic data
+    graphs_filename = "./data/graph_and_circuits/nasdaq_graphs_3_1.pkl" # nasdaq data
 
     print("Starting to load graphs")
     graphs_batch = load_graphs(graphs_filename)
     print("Graphs were successfully loaded")
+
+    # Repair graphs (for Nasdaq data only), which keep 'mu' and 'weights' inside graph attributes but on in node's and edge's attributes
+    if "nasdaq" in graphs_filename:
+        print("Repair graphs")
+        for graph in graphs_batch:
+            repair_graph(graph)
+
 
     graphs_batch = graphs_batch[:limit]
     generated_circuits, generation_times = inference(graphs_batch, model_id, cached=cached, device=device)
