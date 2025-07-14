@@ -1,0 +1,12 @@
+torch
+numpy
+transformers
+datasets
+wandb
+Levenshtein
+networkx
+nltk
+tqdm
+seaborn
+scikit-learn
+qiskit==1.4.3
