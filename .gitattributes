@@ -1,3 +1,6 @@
 gpt-qaoa/train/data/graph_qaoa/train_01_nasdaq.npz filter=lfs diff=lfs merge=lfs -text
 gpt-qaoa/train/data/graph_qaoa/train_02_old.npz filter=lfs diff=lfs merge=lfs -text
 gpt-qaoa/train/data/graph_qaoa/train_03_nasdaq.npz filter=lfs diff=lfs merge=lfs -text
+gpt-qaoa/checkpoints/ckpt_50m_new.pt filter=lfs diff=lfs merge=lfs -text
+gpt-qaoa/checkpoints/ckpt_50m_new_ft_nasdaq.pt filter=lfs diff=lfs merge=lfs -text
+gpt-qaoa/checkpoints/ckpt_50m_old.pt filter=lfs diff=lfs merge=lfs -text
