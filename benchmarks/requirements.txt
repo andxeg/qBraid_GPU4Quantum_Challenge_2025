@@ -1,0 +1,6 @@
+qiskit
+qiskit-aer
+qiskit-optimization
+nlopt
+memory-profiler
+matplotlib
