@@ -1,7 +1,16 @@
+import os
+import sys
+
+# Add parent directory (one level up) to sys.path
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+
 import ast
 from qiskit.circuit.library import RZGate, RZZGate, RYYGate, RXXGate
 from qiskit.circuit import QuantumCircuit
-from graphs_and_parsing.Define_Dicke import dicke_state
+from utils.Define_Dicke import dicke_state
 from qiskit.circuit.library import RYGate, XGate, CXGate
 
 VALID_GATES = {"rz": 1, "rzz": 2, "ryy": 2, "rxx": 2}

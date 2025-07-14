@@ -8,8 +8,8 @@ if parent_dir not in sys.path:
 
 from qiskit_aer import AerSimulator
 from qiskit import transpile
-from graphs_and_parsing.Define_PostProcessing import process_sampler_results, approximation_ratio
-from graphs_and_parsing.Define_Portfolio import markowitz_cost, brute_force_markowitz
+from utils.Define_PostProcessing import process_sampler_results, approximation_ratio
+from utils.Define_Portfolio import markowitz_cost, brute_force_markowitz
 import networkx as nx
 import numpy as np
 

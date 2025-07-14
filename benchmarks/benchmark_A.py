@@ -6,20 +6,20 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # --- SETUP PATHS TO IMPORT MODULES ---
 # Get absolute path to the notebook directory
-notebook_dir = os.path.abspath("./benchmarking")
+notebook_dir = os.path.dirname(os.path.abspath(__file__))
 if notebook_dir not in sys.path:
     sys.path.insert(0, notebook_dir)
 
-# Get absolute path to the QOKit directory (assumes it's two levels up from notebook_dir)
-qokit_path = os.path.abspath(os.path.join(notebook_dir, "../../QOKit"))
+# Get absolute path to the QOKit directory (assumes it's one level up from notebook_dir)
+qokit_path = os.path.abspath(os.path.join(notebook_dir, "../QOKit"))
 if qokit_path not in sys.path:
     sys.path.insert(0, qokit_path)
-sys.path.append("../")
+sys.path.append("../gpt-qaoa")
 print("Notebook directory:", notebook_dir)
 print("QOKit path:", qokit_path)
 
 # --- IMPORT FUNCTIONS FROM LOCAL FILES ---
-from graphs import (
+from utils.graphs import (
     append_csv,
     generate_random_po_graph,
     save_graphs,
@@ -36,9 +36,9 @@ from inference import (
     graph_to_tokens_v1,
 )
 from functools import partial
-from run_circuit_qiskit import run_gpt_circuit
-from run_circuit_qokit import solve_with_qokit
-from parsing import tokens_to_circuit, get_max_token_count
+from utils.run_circuit_qiskit import run_gpt_circuit
+from utils.run_circuit_qokit import solve_with_qokit
+from utils.parsing import tokens_to_circuit, get_max_token_count
 GRAPH_TOKENIZERS: dict[str, Callable] = {
     "graph_to_tokens_old_format": graph_to_tokens_old_format,
     "graph_to_tokens_v1": graph_to_tokens_v1,
