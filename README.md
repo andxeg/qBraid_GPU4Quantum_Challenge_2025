@@ -80,8 +80,8 @@ By integrating our **GPT-QAOA model** with this **decomposition pipeline**, we c
 
 ### 🔧 Recommended workaround
 
-1. Manually go to the [GitHub repo](https://github.com/Marlon-Jost/JPMorgan-Challenge-Submission/tree/main/gpt-qaoa/checkpoints)
-2. Download the all files to your **local machine**
-3. Upload them to your **qBraid instance** using the web interface
+1. Manually go to the [GitHub repo](https://github.com/andxeg/qBraid_GPU4Quantum_Challenge_2025/tree/main/gpt-qaoa/checkpoints)
+3. Download the all files to your **local machine**
+4. Upload them to your **qBraid instance** using the web interface
 
 This ensures you get all the necessary files without hitting GitHub's LFS restrictions.
