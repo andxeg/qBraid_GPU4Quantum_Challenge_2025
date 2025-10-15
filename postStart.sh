@@ -24,10 +24,10 @@ cd ..
 printf "\n[qBraid] Installing your project dependencies...\n"
 pip install -r requirements.txt
 
-# 6. Install Git LFT
-printf "\n[qBraid] Installing Git LFS...\n"
-sudo apt update && sudo apt install -y git-lfs
-git lfs install
+# # 6. Install Git LFT
+# printf "\n[qBraid] Installing Git LFS...\n"
+# sudo apt update && sudo apt install -y git-lfs
+# git lfs install
 
 # 7. Clean pip cache
 printf "\n[qBraid] Purging pip cache...\n"
