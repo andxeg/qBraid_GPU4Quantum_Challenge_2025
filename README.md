@@ -19,7 +19,7 @@ Members: Andrew Maciejunes | Marlon Jost | Andrei Chupakhin | Pranik Chainani | 
 
 1. First, start an instance on [qBraid](https://account.qbraid.com).
 2. Go back to this repository and click on the `Launch on qBraid` button. You will be redirected to qBraid (repository cloning might take up to 5 minutes).
-3. When the repository is cloned, open the Jupyter Notebook [start_here.ipynb](./start_here.ipynb) and follow the instructions inside.
+3. When the repository is cloned, on qBraid open the Jupyter Notebook [start_here.ipynb](./start_here.ipynb) and follow the instructions inside.
 4. You're all set!
 
 
