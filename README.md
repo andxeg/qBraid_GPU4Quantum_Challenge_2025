@@ -15,6 +15,14 @@ Members: Andrew Maciejunes | Marlon Jost | Andrei Chupakhin | Pranik Chainani | 
 - **Full pipeline notebook** - demonstrates end-to-end optimisation of a `150`-asset Nasdaq portfolio, including RMT denoising, spectral clustering, and recombination of sub-solutions. 
 
 
+## How to Use This Repository
+
+1. **First, start an instance** on [qBraid](https://account.qbraid.com).
+2. Click on the **`Launch on qBraid` button**. You will be redirected to qBraid. (Repository **cloning** might take up to 5 minutes.)
+3. When the repository **is cloned**, open the Jupyter Notebook [start_here.ipynb](./start_here.ipynb) and follow the **instructions** inside.
+4. **You're all set!**
+
+
 ## The Bottleneck: Slow QAOA Optimization
 The Quantum Approximate Optimization Algorithm (**QAOA**) is a promising approach for solving complex optimization problems like portfolio management on near-term quantum hardware. However, a critical bottleneck has slowed its practical use: **the iterative parameter-tuning loop**.
 
