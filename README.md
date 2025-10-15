@@ -7,7 +7,7 @@ Members: Andrew Maciejunes | Marlon Jost | Andrei Chupakhin | Pranik Chainani | 
 
 **Single-shot circuit generation + graph-partitioning pipeline that delivers up to 137× speed-ups on 20-asset problems and scales cleanly to 150-asset instances.**
 
-See all details, benchmarks and results here: [./Qvengers_Team_GPU4Quantum.pdf](./Qvengers_Team_GPU4Quantum.pdf)
+See all details, benchmarks and results in [Qvengers_Team_GPU4Quantum.pdf](./Qvengers_Team_GPU4Quantum.pdf)
 
 ## Key ideas
 - **GPT-based circuit generator** - swaps the slow, iterative QAOA optimiser for a single transformer inference, eliminating hundreds of gradient-descent steps.  
